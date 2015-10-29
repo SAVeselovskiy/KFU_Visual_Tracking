@@ -24,21 +24,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="test_face_detection_video.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_face_detection_video.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test_face_detection_video.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.26785713" vertical-offset="0" max-vertical-offset="560">
-              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="495">
+              <caret line="17" column="43" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="43" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_opencv_tracker.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_opencv_tracker.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test_opencv_tracker.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-8.074074" vertical-offset="817" max-vertical-offset="1350">
-              <caret line="69" column="38" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="38" />
+            <state vertical-scroll-proportion="0.4371482" vertical-offset="457" max-vertical-offset="1320">
+              <caret line="46" column="24" selection-start-line="46" selection-start-column="24" selection-end-line="46" selection-end-column="24" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -133,7 +133,7 @@
       <console-settings />
     </option>
   </component>
-  <component name="RunManager" selected="Python.test_face_detection_video">
+  <component name="RunManager" selected="Python.test_opencv_tracker">
     <configuration default="false" name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -322,8 +322,8 @@
     </list>
     <recent_temporary>
       <list size="3">
-        <item index="0" class="java.lang.String" itemvalue="Python.test_face_detection_video" />
-        <item index="1" class="java.lang.String" itemvalue="Python.test_opencv_tracker" />
+        <item index="0" class="java.lang.String" itemvalue="Python.test_opencv_tracker" />
+        <item index="1" class="java.lang.String" itemvalue="Python.test_face_detection_video" />
         <item index="2" class="java.lang.String" itemvalue="Python.test" />
       </list>
     </recent_temporary>
@@ -494,21 +494,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_opencv_tracker.py">
+    <entry file="file://$PROJECT_DIR$/test_face_detection_video.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.074074" vertical-offset="817" max-vertical-offset="1350">
-          <caret line="69" column="38" selection-start-line="69" selection-start-column="38" selection-end-line="69" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="495">
+          <caret line="17" column="43" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="43" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_face_detection_video.py">
+    <entry file="file://$PROJECT_DIR$/test_opencv_tracker.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.26785713" vertical-offset="0" max-vertical-offset="560">
-          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-          <folding />
+        <state vertical-scroll-proportion="0.4371482" vertical-offset="457" max-vertical-offset="1320">
+          <caret line="46" column="24" selection-start-line="46" selection-start-column="24" selection-end-line="46" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
