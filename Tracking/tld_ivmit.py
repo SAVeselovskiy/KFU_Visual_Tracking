@@ -30,28 +30,36 @@ class TLD_IVMIT:
         self.integrator = Integrator()
 
     def start(self):
+        count = 150
         while True:
             frame = get_frame(self.cap)
             gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
             last_time = time()
-            detected_windows = self.detector.detect(gray_frame, self.width_bounding_box, self.height_bounding_box)
-            tracked_window = self.tracker.track(frame, (self.x, self.y, self.width_bounding_box, self.height_bounding_box))
-            single_window = self.integrator.get_single_window(gray_frame, detected_windows, tracked_window, self.detector.nearest_neighbor_classifier)
-            if single_window != None:
-                self.x, self.y, self.width_bounding_box, self.height_bounding_box = single_window
-            else:
-                self.is_visible = False
-            self.learning_component.n_expert()
-            self.learning_component.p_expert()
+            self.x, self.y, self.width_bounding_box, self.height_bounding_box = self.tracker.track(frame, (self.x, self.y, self.width_bounding_box, self.height_bounding_box))
+            # count -= 1
+            # if count > 0:
+            #     detected_windows = self.detector.detect(gray_frame, self.width_bounding_box, self.height_bounding_box)
+            #     tracked_window = self.tracker.track(frame, (self.x, self.y, self.width_bounding_box, self.height_bounding_box))
+            #     single_window = self.integrator.get_single_window(gray_frame, detected_windows, tracked_window, self.detector.nearest_neighbor_classifier)
+            #     if single_window != None:
+            #         self.x, self.y, self.width_bounding_box, self.height_bounding_box = single_window
+            #     else:
+            #         self.is_visible = False
+            #     self.learning_component.n_expert()
+            #     self.learning_component.p_expert()
+            #
+            # else:
+            #     x, y, width, height = self.tracker.track(frame, (self.x, self.y, self.width_bounding_box, self.height_bounding_box))
+            #     self.learning_component.update_positives(get_bounding_box(frame, x, y, width, height))
             current_time = time()
 
             gray_bgr_frame = cv2.cvtColor(gray_frame,cv2.COLOR_GRAY2BGR)
             # for x, y, width, height in detected_windows:
             #     cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
 
-            x, y, width, height = tracked_window
-            cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
+            # x, y, width, height = tracked_window
+            # cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
 
             if self.is_visible:
                 cv2.rectangle(gray_bgr_frame, pt1 = self.point_left_up(), pt2 = self.point_right_down(), color = (255, 0, 0))
@@ -65,6 +73,7 @@ class TLD_IVMIT:
             # print int(10/(current_time - last_time))/10.0, 'FPS ', current_time - last_time, 'Sec'
 
             cv2.imshow(self.window_name,gray_bgr_frame)
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
