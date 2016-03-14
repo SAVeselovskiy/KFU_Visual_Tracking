@@ -7,7 +7,7 @@ from integration import Integrator
 from learning import LearningComponent, get_bounding_box
 from time import time
 
-def get_frame(cap, fx_size = 0.3, fy_size = 0.3):
+def get_frame(cap, fx_size = 0.15, fy_size = 0.15):
     if cap is not None:
         ret, frame = cap.read()
         frame = cv2.resize(frame, None, fx = fx_size, fy = fy_size)
