@@ -2,7 +2,6 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
 import numpy as np
-from learning import get_bounding_box
 
 class Tracker:
     def __init__(self):

@@ -1,6 +1,5 @@
 __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
-import cv2
 from detection import Detector
 from tracking import Tracker
 from integration import Integrator
@@ -31,8 +30,8 @@ class TLD_IVMIT:
 
         else:
             (x, y, w, h) = self.tracker.track(frame, self.position)
-            # self.learning_component.update_positives(get_bounding_box(frame, x, y, width, height))
             self.position.update(frame, x, y, w, h)
+            self.learning_component.update_positives(self.position)
             self.init_frames_count -= 1
 
         return self.position

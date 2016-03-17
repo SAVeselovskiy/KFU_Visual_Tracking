@@ -2,7 +2,6 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
 import numpy as np
-from learning import get_bounding_box
 
 class PatchVarianceClassifier:
     def __init__(self, initial_patch):
@@ -77,10 +76,10 @@ def scanning_window(image, bounding_box_size, scales_step = 1.2, horizontal_step
 class Detector:
     def __init__(self, learning_component):
         self.learning_component = learning_component
-        init_patch = learning_component.get_init_patch()
-        self.patch_variance_classifier = PatchVarianceClassifier(init_patch)
-        self.ensemble_classifier = EnsembleClassifier(init_patch)
-        self.nearest_neighbor_classifier = NearestNeighborClassifier(learning_component)
+        # init_patch = learning_component.get_init_patch()
+        # self.patch_variance_classifier = PatchVarianceClassifier(init_patch)
+        # self.ensemble_classifier = EnsembleClassifier(init_patch)
+        # self.nearest_neighbor_classifier = NearestNeighborClassifier(learning_component)
 
     def cascaded_classifier(self, patch):
         # 3 stages of classify
