@@ -3,6 +3,7 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 import cv2
 from tld_ivmit import TLD_IVMIT
 from structure import CurrentPosition
+from time import time
 
 point1 = None
 point2 = None
@@ -18,6 +19,14 @@ def get_frame(cap, fx_size = 0.3, fy_size = 0.3):
         return frame
     else:
         return None
+
+def get_fps(time1, time2):
+    fps = int(100 / (time2 - time1)) / 100.0
+    if fps < 25:
+        color = (0,0,255)
+    else:
+        color = (0,255,0)
+    return fps, color
 
 def reset_tracking(event,x,y,flags,param):
     global point1, point2, tld
@@ -47,14 +56,26 @@ cv2.setMouseCallback(window_name, reset_tracking)
 while True:
     frame = get_frame(cap)
     if tld is None:
-        gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-        gray_bgr_frame = cv2.cvtColor(gray_frame,cv2.COLOR_GRAY2BGR)
+        # gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        # gray_bgr_frame = cv2.cvtColor(gray_frame,cv2.COLOR_GRAY2BGR)
         if point1 != None and point2 != None:
-            cv2.rectangle(gray_bgr_frame, pt1 = point1, pt2 = point2, color = (30, 200, 120))
-        cv2.imshow(window_name, gray_bgr_frame)
+            cv2.rectangle(frame, pt1 = point1, pt2 = point2, color = (30, 200, 120))
     else:
-        tld.start(frame)
-        cv2.imshow(window_name, frame)
+        time1 = time()
+        current_position = tld.start(frame)
+        time2 = time()
+        fps, color = get_fps(time1, time2)
+
+        # for x, y, width, height in detected_windows:
+        #     cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
+
+        # x, y, width, height = tracked_window
+        # cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
+
+        if tld.is_visible:
+            cv2.rectangle(frame, pt1 = current_position.point_left_up(), pt2 = current_position.point_right_down(), color = color)
+        cv2.putText(frame, str(fps), (10, frame.shape[0]-10), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
+    cv2.imshow(window_name, frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
