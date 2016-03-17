@@ -2,7 +2,7 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
 from tld_ivmit import TLD_IVMIT
-from structure import CurrentPosition
+from structure import Position
 from time import time
 
 point1 = None
@@ -47,8 +47,8 @@ def reset_tracking(event,x,y,flags,param):
         down_y = max(point1[1],point2[1])
         point1 = None
         point2 = None
-        current_position = CurrentPosition(frame, left_x, up_y, right_x-left_x, down_y-up_y)
-        tld = TLD_IVMIT(current_position)
+        init_position = Position(frame, left_x, up_y, right_x-left_x, down_y-up_y)
+        tld = TLD_IVMIT(init_position)
 
 cv2.namedWindow(window_name)
 cv2.setMouseCallback(window_name, reset_tracking)
@@ -56,8 +56,6 @@ cv2.setMouseCallback(window_name, reset_tracking)
 while True:
     frame = get_frame(cap)
     if tld is None:
-        # gray_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-        # gray_bgr_frame = cv2.cvtColor(gray_frame,cv2.COLOR_GRAY2BGR)
         if point1 != None and point2 != None:
             cv2.rectangle(frame, pt1 = point1, pt2 = point2, color = (30, 200, 120))
     else:
