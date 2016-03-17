@@ -17,16 +17,16 @@ def add_gaussian_noise(bounding_box, mean, sigma):
 
 class LearningComponent:
 
-    def __init__(self, initial_frame, x, y, width, height, patch_size = (15,15)):
+    def __init__(self, initial_position, patch_size = (15,15)):
         self.patch_size = patch_size
         self.positives = []
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
-        gray_initial_frame = cv2.cvtColor(initial_frame, cv2.COLOR_BGR2GRAY)
-        bounding_box = get_bounding_box(gray_initial_frame, x, y, width, height)
+        gray_initial_frame = cv2.cvtColor(initial_position.frame, cv2.COLOR_BGR2GRAY)
+        bounding_box = get_bounding_box(gray_initial_frame, initial_position.x, initial_position.y, initial_position.width, initial_position.height)
         self.update_positives(bounding_box)
-        self.generate_training_examples(gray_initial_frame, x, y, width, height)
+        self.generate_training_examples(gray_initial_frame, initial_position.x, initial_position.y, initial_position.width, initial_position.height)
 
     def generate_training_examples(self, gray_initial_frame, x, y, width, height, closest_count = 10, surround_count = 50, small_radius = None, big_radius = None, sigma = 5):
         if small_radius == None:
