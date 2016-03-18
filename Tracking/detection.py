@@ -87,8 +87,10 @@ class Detector:
         # return -1 if object is negative detected
         if self.patch_variance_classifier.classify(patch) == -1:
             return -1
-        # elif self.ensemble_classifier.classify(patch) == 1:
-        #     return 1
+        elif self.ensemble_classifier.classify(patch) == 1:
+            sift = cv2.xfeatures2d.SIFT_create()
+            (kps, descs) = sift.detectAndCompute(patch, None)
+            return 1
         else:
             return self.nearest_neighbor_classifier.classify(patch)
 
@@ -97,7 +99,7 @@ class Detector:
         detected_windows = []
         for x, y, bounding_box in scanning_window(frame, bounding_box_size, scales_step = 1.5, horizontal_step = 0.3, vertical_step = 0.3, minimal_bounding_box_size = 50):
             patch = cv2.resize(bounding_box, (15,15))
-            result = self.cascaded_classifier(bounding_box)
+            result = self.cascaded_classifier(patch)
             if result == 1:
                 detected_windows.append(((x, y, bounding_box.shape[1], bounding_box.shape[0]), patch))
                 self.learning_component.add_new_positive(patch)
