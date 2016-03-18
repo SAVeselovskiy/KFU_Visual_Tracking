@@ -92,12 +92,12 @@ class Detector:
         else:
             return self.nearest_neighbor_classifier.classify(patch)
 
-    def detect(self, gray_frame, width_bounding_box, height_bounding_box):
-        bounding_box_size = np.array([height_bounding_box, width_bounding_box])
+    def detect(self, frame, position):
+        bounding_box_size = np.array([position.height, position.width])
         detected_windows = []
-        for x, y, bounding_box in scanning_window(gray_frame, bounding_box_size, scales_step = 1.5, horizontal_step = 0.3, vertical_step = 0.3, minimal_bounding_box_size = 50):
+        for x, y, bounding_box in scanning_window(frame, bounding_box_size, scales_step = 1.5, horizontal_step = 0.3, vertical_step = 0.3, minimal_bounding_box_size = 50):
             patch = cv2.resize(bounding_box, (15,15))
-            result = self.cascaded_classifier(patch)
+            result = self.cascaded_classifier(bounding_box)
             if result == 1:
                 detected_windows.append(((x, y, bounding_box.shape[1], bounding_box.shape[0]), patch))
                 self.learning_component.add_new_positive(patch)
