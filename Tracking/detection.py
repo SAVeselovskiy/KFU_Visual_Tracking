@@ -2,39 +2,34 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 
 class PatchVarianceClassifier:
-    def __init__(self, initial_patch):
-        self.initial_patch_variance = np.var(initial_patch)
+    def __init__(self, init_patch):
+        self.init_patch_variance = np.var(init_patch)
 
     def classify(self, patch):
         # return 1 if object is positive detected
-        # return -1 if object is negative detected
-        if np.var(patch) > 0.5 * self.initial_patch_variance:
+        # return 0 if object is negative detected
+        if np.var(patch) > 0.5 * self.init_patch_variance:
             return 1
         else:
-            return -1
+            return 0
 
 class EnsembleClassifier:
-    base_classifiers = []
-    comparison = 13
-
-    def __init__(self, initial_patch):
-        pass
-        # self.generate_pixel_comparisons(initial_patch)
+    def __init__(self, learning_component):
+        self.learning_component = learning_component
+        self.classifier = RandomForestClassifier()
 
     def classify(self, patch):
         # return 1 if object is positive detected
-        # return -1 if object is negative detected
-        base_classifiers_results = [self.base_classify()]
-        if np.mean(base_classifiers_results) > 0.5:
-            return 1
-        else:
-            return -1
+        # return 0 if object is negative detected
+        feature = self.learning_component.get_feature(patch)
+        return self.classifier.predict(feature)
 
-    def generate_pixel_comparisons(self, patch):
-        blured = cv2.blur(patch, 3)
-        self.base_classifiers = np.zeros(2 ** self.comparison)
+    def relearn(self):
+        x, y = self.learning_component.get_training_set()
+        self.classifier.fit(x, y)
 
 class NearestNeighborClassifier:
 
@@ -45,11 +40,11 @@ class NearestNeighborClassifier:
 
     def classify(self, patch):
         # return 1 if object is positive detected
-        # return -1 if object is negative detected
+        # return 0 if object is negative detected
         if self.learning_component.relative_similarity(patch) > self.tetta:
             return 1
         else:
-            return -1
+            return 0
 
 def scanning_window(image, bounding_box_size, scales_step = 1.2, horizontal_step = 0.1, vertical_step = 0.1, minimal_bounding_box_size = 20):
     height, width = bounding_box_size
@@ -74,25 +69,23 @@ def scanning_window(image, bounding_box_size, scales_step = 1.2, horizontal_step
             flag_dec = True
 
 class Detector:
-    def __init__(self, learning_component):
+    def __init__(self, learning_component, position):
         self.learning_component = learning_component
-        # init_patch = learning_component.get_init_patch()
-        # self.patch_variance_classifier = PatchVarianceClassifier(init_patch)
-        # self.ensemble_classifier = EnsembleClassifier(init_patch)
+        self.patch_variance_classifier = PatchVarianceClassifier(learning_component.init_patch)
+        self.ensemble_classifier = EnsembleClassifier(learning_component)
         # self.nearest_neighbor_classifier = NearestNeighborClassifier(learning_component)
 
     def cascaded_classifier(self, patch):
         # 3 stages of classify
         # return 1 if object is positive detected
-        # return -1 if object is negative detected
-        if self.patch_variance_classifier.classify(patch) == -1:
-            return -1
-        elif self.ensemble_classifier.classify(patch) == 1:
-            sift = cv2.xfeatures2d.SIFT_create()
-            (kps, descs) = sift.detectAndCompute(patch, None)
-            return 1
+        # return 0 if object is negative detected
+        if self.patch_variance_classifier.classify(patch) == 0:
+            return 0
         else:
-            return self.nearest_neighbor_classifier.classify(patch)
+            return self.ensemble_classifier.classify(patch)
+
+        # else:
+        #     return self.nearest_neighbor_classifier.classify(patch)
 
     def detect(self, frame, position):
         bounding_box_size = np.array([position.height, position.width])

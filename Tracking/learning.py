@@ -11,13 +11,17 @@ def add_gaussian_noise(bounding_box, mean, sigma):
 
 class LearningComponent:
 
-    def __init__(self, init_position, patch_size = (15,15)):
-        self.patch_size = patch_size
+    def __init__(self, init_position):
         self.positives = []
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
+        self.feature_positives = []
+        self.feature_negatives = []
         self.update_positives(init_position)
+        self.descriptor = cv2.HOGDescriptor()
+        self.init_patch = self.get_patch(init_position)
+
     #     self.generate_training_examples(init_position)
     #
     # def generate_training_examples(self, gray_initial_frame, x, y, width, height, closest_count = 10, surround_count = 50, small_radius = None, big_radius = None, sigma = 5):
@@ -69,6 +73,22 @@ class LearningComponent:
     #         generalise = add_gaussian_noise(bounding_box, 0, sigma)
     #         self.update_negatives(generalise)
 
+    def get_training_set(self):
+        x = []
+        y = []
+        for feature in self.feature_positives:
+            x.append(feature)
+            y.append(1)
+        for feature in self.feature_negatives:
+            x.append(feature)
+            y.append(0)
+        return x, y
+
+    def get_patch(self, position):
+        patch = cv2.resize(position.get_bounding_box(), self.patch_size)
+        patch = np.uint8(np.rint(patch))
+        return patch
+
     def NCC(self, pi, pj):
         # pi, pj - patches
         CV_TM_CCOEFF_NORMED = 5
@@ -117,32 +137,26 @@ class LearningComponent:
         else:
             return 0
 
-    def get_features(self, position):
-        p = position.get_bounding_box()
-        if p is not None:
-            if p.shape != self.patch_size:
-                p = cv2.cvtColor(p, cv2.COLOR_BGR2GRAY)
-                p = cv2.resize(p, self.patch_size)
-                p = np.uint8(np.rint(p))
-                return p
+    def get_feature(self, patch):
+        return self.hog.compute(patch)
 
     def update_positives(self, position):
-        feature = self.get_features(position)
+        feature = self.get_feature(position)
         if feature is not None:
             self.positives.append(feature)
 
     def update_negatives(self, position):
-        feature = self.get_features(position)
+        feature = self.get_feature(position)
         if feature is not None:
             self.negatives.append(feature)
 
     def add_new_positive(self, position):
-        feature = self.get_features(position)
+        feature = self.get_feature(position)
         if feature is not None:
             self.new_positives.append(feature)
 
     def add_new_negative(self, position):
-        feature = self.get_features(position)
+        feature = self.get_feature(position)
         if feature is not None:
             self.new_negatives.append(feature)
 

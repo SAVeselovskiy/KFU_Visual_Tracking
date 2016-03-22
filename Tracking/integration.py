@@ -11,7 +11,10 @@ def windows_intersection(window1, window2):
         return 0
 
 class Integrator:
-    def get_single_window(self, gray_frame, detected_windows, tracked_window, learning_component):
+    def __init__(self, learning_component):
+        self.learning_component = learning_component
+
+    def get_single_window(self, frame, detected_windows, tracked_window):
         single_window = None
         max_similarity = 0
         for detected_window, patch in detected_windows:
@@ -19,7 +22,7 @@ class Integrator:
                 # x, y, width, height = detected_window
                 # bounding_box = gray_frame[y:y+height, x:x+width]
                 # patch = cv2.resize(bounding_box, (15,15))
-                similarity = learning_component.conservative_similarity(patch)
+                similarity = self.learning_component.conservative_similarity(patch)
                 if similarity > max_similarity:
                     max_similarity = similarity
                     single_window = detected_window

@@ -21,22 +21,26 @@ class TLD_IVMIT:
     def start(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if self.init_frames_count == 0:
-            # detected_windows = self.detector.detect(frame, self.position)
+            detected_windows = self.detector.detect(frame, self.position)
             tracked_window = self.tracker.track(frame, self.position)
-            self.position.update(frame, *tracked_window)
-            # single_window = self.integrator.get_single_window(frame, detected_windows, tracked_window, self.detector.nearest_neighbor_classifier)
-            # if single_window != None:
-            #     self.x, self.y, self.width_bounding_box, self.height_bounding_box = single_window
-            # else:
-            #     self.is_visible = False
-            # self.learning_component.n_expert()
-            # self.learning_component.p_expert()
 
+            single_window = self.integrator.get_single_window(frame, detected_windows, tracked_window)
+            if single_window != None:
+                self.position.update(frame, *single_window)
+            else:
+                self.is_visible = False
+            self.learning_component.n_expert()
+            self.learning_component.p_expert()
+            self.detector.ensemble_classifier.relearn()
 
         else:
             tracked_window = self.tracker.track(frame, self.position)
-            self.position.update(frame, *tracked_window)
-            self.learning_component.update_positives(self.position)
-            self.init_frames_count -= 1
+            if tracked_window != None:
+                self.position.update(frame, *tracked_window)
+                self.learning_component.update_positives(self.position)
+                self.init_frames_count -= 1
+            else:
+                self.init_frames_count = 0
+                self.is_visible = False
 
         return self.position
