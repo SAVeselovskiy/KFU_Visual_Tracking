@@ -11,16 +11,14 @@ def add_gaussian_noise(bounding_box, mean, sigma):
 
 class LearningComponent:
 
-    def __init__(self, init_position):
+    def __init__(self, init_patch):
         self.positives = []
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
-        self.feature_positives = []
-        self.feature_negatives = []
-        self.update_positives(init_position)
         self.descriptor = cv2.HOGDescriptor()
-        self.init_patch = self.get_patch(init_position)
+        self.update_positives(init_patch)
+        self.init_patch = init_patch
 
     #     self.generate_training_examples(init_position)
     #
@@ -76,24 +74,19 @@ class LearningComponent:
     def get_training_set(self):
         x = []
         y = []
-        for feature in self.feature_positives:
-            x.append(feature)
+        for positive in self.positives:
+            x.append(positive.calculate_feature(self.descriptor))
             y.append(1)
-        for feature in self.feature_negatives:
-            x.append(feature)
+        for negative in self.negatives:
+            x.append(negative.calculate_feature(self.descriptor))
             y.append(0)
         return x, y
-
-    def get_patch(self, position):
-        patch = cv2.resize(position.get_bounding_box(), self.patch_size)
-        patch = np.uint8(np.rint(patch))
-        return patch
 
     def NCC(self, pi, pj):
         # pi, pj - patches
         CV_TM_CCOEFF_NORMED = 5
         try:
-            x = cv2.matchTemplate(pi, pj, CV_TM_CCOEFF_NORMED)[0][0]
+            x = cv2.matchTemplate(pi.content, pj.content, CV_TM_CCOEFF_NORMED)[0][0]
         except:
             x = 1
         return x
@@ -137,28 +130,19 @@ class LearningComponent:
         else:
             return 0
 
-    def get_feature(self, patch):
-        return self.hog.compute(patch)
+    def update_positives(self, patch):
+        patch.calculate_feature(self.descriptor)
+        self.positives.append(patch)
 
-    def update_positives(self, position):
-        feature = self.get_feature(position)
-        if feature is not None:
-            self.positives.append(feature)
+    def update_negatives(self, patch):
+        patch.calculate_feature(self.descriptor)
+        self.negatives.append(patch)
 
-    def update_negatives(self, position):
-        feature = self.get_feature(position)
-        if feature is not None:
-            self.negatives.append(feature)
+    def add_new_positive(self, patch):
+        self.new_positives.append(patch)
 
-    def add_new_positive(self, position):
-        feature = self.get_feature(position)
-        if feature is not None:
-            self.new_positives.append(feature)
-
-    def add_new_negative(self, position):
-        feature = self.get_feature(position)
-        if feature is not None:
-            self.new_negatives.append(feature)
+    def add_new_negative(self, patch):
+        self.new_negatives.append(patch)
 
     def n_expert(self, n_threshold = 0.2):
         for patch in self.new_positives:

@@ -1,7 +1,3 @@
-import cv2
-
-frame = cv2.imread('test2.jpg')
-hog = cv2.HOGDescriptor()
-x = hog.compute(frame)
-
-pass
+from sklearn.ensemble import RandomForestClassifier
+classifier = RandomForestClassifier()
+classifier.fit([[1,2],[3,4]],[1,-1])

@@ -1,17 +1,17 @@
 __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
-import cv2
+from copy import copy
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 class PatchVarianceClassifier:
     def __init__(self, init_patch):
-        self.init_patch_variance = np.var(init_patch)
+        self.init_patch_variance = np.var(init_patch.content)
 
     def classify(self, patch):
         # return 1 if object is positive detected
         # return 0 if object is negative detected
-        if np.var(patch) > 0.5 * self.init_patch_variance:
+        if np.var(patch.content) > 0.5 * self.init_patch_variance:
             return 1
         else:
             return 0
@@ -24,7 +24,7 @@ class EnsembleClassifier:
     def classify(self, patch):
         # return 1 if object is positive detected
         # return 0 if object is negative detected
-        feature = self.learning_component.get_feature(patch)
+        feature = patch.calculate_feature(self.learning_component.descriptor)
         return self.classifier.predict(feature)
 
     def relearn(self):
@@ -46,30 +46,28 @@ class NearestNeighborClassifier:
         else:
             return 0
 
-def scanning_window(image, bounding_box_size, scales_step = 1.2, horizontal_step = 0.1, vertical_step = 0.1, minimal_bounding_box_size = 20):
-    height, width = bounding_box_size
+def scanning_window(position, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 20):
     flag_inc = True
     flag_dec = False
-    while min(width, height) >= minimal_bounding_box_size:
-        for y in xrange(0, image.shape[0]-height, int(vertical_step * height)):
-            for x in xrange(0, image.shape[1]-width, int(horizontal_step * width)):
-                yield (x, y, get_bounding_box(image, x, y, width, height))
-                # clone = image.copy()
-                # cv2.rectangle(clone, (x, y), (x + window_size[1], y + window_size[0]), (0, 255, 0), 2)
-                # cv2.imshow("TLP_IVMIT", clone)
-                # cv2.waitKey(1)
+    while min(position.width, position.height) >= minimal_bounding_box_size:
+        while position.is_correct():
+            position.update(y=position.y+int(slip_step * position.height))
+            while position.is_correct():
+                position.update(x=position.x+int(slip_step * position.width))
+                if position.is_correct():
+                    yield position
+            position.update(x=0)
+        position.update(y=0)
         if flag_inc:
-            height = int(height * scales_step)
-            width = int(width * scales_step)
+            position.update(height=int(position.height * scales_step), width = int(position.width * scales_step))
         if flag_dec:
-            height = int(height / scales_step)
-            width = int(width / scales_step)
-        if height > image.shape[0] or width > image.shape[1]:
+            position.update(height=int(position.height / scales_step), width = int(position.width / scales_step))
+        if position.height > position.frame.shape[0] or position.width > position.frame.shape[0]:
             flag_inc = False
             flag_dec = True
 
 class Detector:
-    def __init__(self, learning_component, position):
+    def __init__(self, learning_component):
         self.learning_component = learning_component
         self.patch_variance_classifier = PatchVarianceClassifier(learning_component.init_patch)
         self.ensemble_classifier = EnsembleClassifier(learning_component)
@@ -87,14 +85,14 @@ class Detector:
         # else:
         #     return self.nearest_neighbor_classifier.classify(patch)
 
-    def detect(self, frame, position):
-        bounding_box_size = np.array([position.height, position.width])
+    def detect(self, position):
+        position = copy(position)
         detected_windows = []
-        for x, y, bounding_box in scanning_window(frame, bounding_box_size, scales_step = 1.5, horizontal_step = 0.3, vertical_step = 0.3, minimal_bounding_box_size = 50):
-            patch = cv2.resize(bounding_box, (15,15))
+        for current_position in scanning_window(position, scales_step = 1.5, slip_step = 0.3, minimal_bounding_box_size = 50):
+            patch = current_position.calculate_patch()
             result = self.cascaded_classifier(patch)
             if result == 1:
-                detected_windows.append(((x, y, bounding_box.shape[1], bounding_box.shape[0]), patch))
+                detected_windows.append(current_position.get_window())
                 self.learning_component.add_new_positive(patch)
             else:
                 self.learning_component.add_new_negative(patch)
