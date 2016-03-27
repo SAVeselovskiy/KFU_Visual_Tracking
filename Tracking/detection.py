@@ -52,14 +52,23 @@ def scanning_window(position, scales_step = 1.2, slip_step = 0.1, minimal_boundi
     flag_inc = True
     flag_dec = False
     while min(position.width, position.height) >= minimal_bounding_box_size:
-        while position.is_correct():
-            position.update(y=position.y+int(slip_step * position.height))
-            while position.is_correct():
-                position.update(x=position.x+int(slip_step * position.width))
-                if position.is_correct():
+        if position.is_correct():
+            yield position
+        is_end = False
+        step_width = int(slip_step * position.width)
+        step_height = int(slip_step * position.height)
+        layer = 1
+        xx = position.x
+        yy = position.y
+        while not is_end:
+            is_end = True
+            for start_point, vector in (([-1,-1],[1,0]),([1,-1],[0,1]),([1,1],[-1,0]),([-1,1],[0,-1])):
+                position.update(x=xx + (start_point[0]*layer + vector[0])*step_width, y=yy+(start_point[1]*layer + vector[1])*step_height)
+                while position.is_correct() and xx - layer*step_width <= position.x <= xx + layer*step_width and yy - layer*step_height <= position.y <= yy + layer*step_height:
+                    is_end = False
                     yield position
-            position.update(x=0)
-        position.update(y=0)
+                    position.update(x=position.x+vector[0]*step_width, y=position.y+vector[1]*step_height)
+            layer =+ 1
         if flag_inc:
             position.update(height=int(position.height * scales_step), width = int(position.width * scales_step))
         if flag_dec:
@@ -87,7 +96,7 @@ class Detector:
         # else:
         #     return self.nearest_neighbor_classifier.classify(patch)
 
-    def detect(self, position):
+    def detect(self, position, is_tracked):
         position = copy(position)
         detected_windows = []
         for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.3, minimal_bounding_box_size = 50):
@@ -96,6 +105,8 @@ class Detector:
             if result == 1:
                 detected_windows.append((current_position.get_window(), current_position.calculate_patch()))
                 self.learning_component.add_new_positive(patch)
+                if is_tracked:
+                    return detected_windows
             else:
                 self.learning_component.add_new_negative(patch)
         return detected_windows

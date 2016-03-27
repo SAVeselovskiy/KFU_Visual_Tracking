@@ -28,13 +28,14 @@ class TLD_IVMIT:
         if self.init_frames_count == 0:
             start = time()
             self.tracked_window = self.tracker.track(frame, self.position)
-            self.position.update(frame, *self.tracked_window)
+            if self.tracked_window is not None:
+                self.position.update(frame, *self.tracked_window)
             print "Tracking:", time()- start
             start = time()
             self.detector.ensemble_classifier.relearn()
             print "Relearn:", time()- start
             start = time()
-            self.detected_windows = self.detector.detect(self.position)
+            self.detected_windows = self.detector.detect(self.position, self.tracked_window is not None)
             print "Detection:", time()- start
             start = time()
             single_window = self.integrator.get_single_window(self.detected_windows, self.tracked_window)
