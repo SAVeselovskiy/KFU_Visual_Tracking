@@ -1,8 +1,8 @@
+# -*- coding: utf-8 -*-
 __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
 from tld_ivmit import TLD_IVMIT
-from structure import Position
 from time import time
 
 point1 = None
@@ -64,11 +64,13 @@ while True:
         time2 = time()
         fps, clr = get_fps(time1, time2)
 
-        # for x, y, width, height in detected_windows:
-        #     cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
+        if tld.detected_windows is not None:
+            for (x, y, width, height), patch in tld.detected_windows:
+                cv2.rectangle(frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (255, 255, 0))
 
-        # x, y, width, height = tracked_window
-        # cv2.rectangle(gray_bgr_frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (0, 0, 255))
+        if tld.tracked_window is not None:
+            x, y, width, height = tld.tracked_window
+            cv2.rectangle(frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (255, 0, 255))
 
         if tld.is_visible:
             if tld.init_frames_count == 0:

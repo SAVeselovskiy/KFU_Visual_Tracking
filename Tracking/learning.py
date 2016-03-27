@@ -16,7 +16,18 @@ class LearningComponent:
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
-        self.descriptor = cv2.HOGDescriptor()
+        winSize = (16,16)
+        blockSize = (4,4)
+        blockStride = (4,4)
+        cellSize = (4,4)
+        nbins = 9
+        derivAperture = 1
+        winSigma = 4.
+        histogramNormType = 0
+        L2HysThreshold = 2.0000000000000001e-01
+        gammaCorrection = 1
+        nlevels = 64
+        self.descriptor = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma, histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
         self.update_positives(init_patch)
         self.init_patch = init_patch
 
@@ -72,15 +83,19 @@ class LearningComponent:
     #         self.update_negatives(generalise)
 
     def get_training_set(self):
-        x = []
-        y = []
-        for positive in self.positives:
-            x.append(positive.calculate_feature(self.descriptor))
-            y.append(1)
-        for negative in self.negatives:
-            x.append(negative.calculate_feature(self.descriptor))
-            y.append(0)
-        return x, y
+        if len(self.negatives) != 0 and len(self.positives) != 0:
+            samples = []
+            positive_weight = 1.0*len(self.negatives)/(len(self.negatives)+len(self.positives))
+            negative_weight = 1.0*len(self.positives)/(len(self.negatives)+len(self.positives))
+            weights = np.append(positive_weight*np.ones(len(self.positives)),negative_weight*np.ones(len(self.negatives)))
+            targets = np.append(np.ones(len(self.positives)),np.zeros(len(self.negatives)))
+            for positive in self.positives:
+                samples.append(positive.calculate_feature(self.descriptor))
+            for negative in self.negatives:
+                samples.append(negative.calculate_feature(self.descriptor))
+            return samples, weights, targets
+        else:
+            return np.array([]), np.array([]), np.array([])
 
     def NCC(self, pi, pj):
         # pi, pj - patches
@@ -131,18 +146,22 @@ class LearningComponent:
             return 0
 
     def update_positives(self, patch):
-        patch.calculate_feature(self.descriptor)
-        self.positives.append(patch)
+        if patch != None:
+            patch.calculate_feature(self.descriptor)
+            self.positives.append(patch)
 
     def update_negatives(self, patch):
-        patch.calculate_feature(self.descriptor)
-        self.negatives.append(patch)
+        if patch != None:
+            patch.calculate_feature(self.descriptor)
+            self.negatives.append(patch)
 
     def add_new_positive(self, patch):
-        self.new_positives.append(patch)
+        if patch != None:
+            self.new_positives.append(patch)
 
     def add_new_negative(self, patch):
-        self.new_negatives.append(patch)
+        if patch != None:
+            self.new_negatives.append(patch)
 
     def n_expert(self, n_threshold = 0.2):
         for patch in self.new_positives:

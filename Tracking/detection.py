@@ -3,6 +3,8 @@ __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 from copy import copy
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+import warnings
+warnings.filterwarnings("ignore")
 
 class PatchVarianceClassifier:
     def __init__(self, init_patch):
@@ -28,8 +30,8 @@ class EnsembleClassifier:
         return self.classifier.predict(feature)
 
     def relearn(self):
-        x, y = self.learning_component.get_training_set()
-        self.classifier.fit(x, y)
+        samples, weights, targets = self.learning_component.get_training_set()
+        self.classifier.fit(samples, targets, sample_weight=weights)
 
 class NearestNeighborClassifier:
 
@@ -92,7 +94,7 @@ class Detector:
             patch = current_position.calculate_patch()
             result = self.cascaded_classifier(patch)
             if result == 1:
-                detected_windows.append(current_position.get_window())
+                detected_windows.append((current_position.get_window(), current_position.calculate_patch()))
                 self.learning_component.add_new_positive(patch)
             else:
                 self.learning_component.add_new_negative(patch)

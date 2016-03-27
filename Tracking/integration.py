@@ -14,14 +14,28 @@ class Integrator:
     def __init__(self, learning_component):
         self.learning_component = learning_component
 
-    def get_single_window(self, frame, detected_windows, tracked_window):
+    def get_single_window(self, detected_windows, tracked_window):
         single_window = None
-        max_similarity = 0
-        for detected_window, patch in detected_windows:
-            if tracked_window == None or windows_intersection(detected_window, tracked_window) > 0:
-                # x, y, width, height = detected_window
-                # bounding_box = gray_frame[y:y+height, x:x+width]
-                # patch = cv2.resize(bounding_box, (15,15))
+        if tracked_window is not None:
+            if len(detected_windows) > 0:
+                max_fscore = 0
+                for detected_window, patch in detected_windows:
+                    intersection = windows_intersection(detected_window, tracked_window)
+                    precision = 1.0*intersection/(detected_window[2]*detected_window[3])
+                    recall = 1.0*intersection/(tracked_window[2]*tracked_window[3])
+                    if precision + recall != 0:
+                        fscore = 2*precision*recall/(precision+recall)
+                        if fscore > max_fscore:
+                            max_fscore = fscore
+                            single_window = detected_window
+                print "F-score:", max_fscore
+                if max_fscore < 0.9:
+                    single_window = tracked_window
+            else:
+                single_window = tracked_window
+        else:
+            max_similarity = 0
+            for detected_window, patch in detected_windows:
                 similarity = self.learning_component.conservative_similarity(patch)
                 if similarity > max_similarity:
                     max_similarity = similarity
