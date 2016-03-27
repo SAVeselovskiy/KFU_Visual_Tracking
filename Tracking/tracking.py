@@ -68,7 +68,7 @@ class Tracker:
         self.bounding_box = (initial_position.x, initial_position.y, initial_position.width, initial_position.height)
         self.bb = initial_position.get_bounding_box()
 
-        self.detector = cv2.xfeatures2d.SURF_create(5000)
+        self.detector = cv2.xfeatures2d.SURF_create(100)
         self.calculate_points(initial_position)
 
     # возвращает новый boundingBox, новые вычисленные точки, булево значение (True - следит, False - потерял объект)
@@ -101,5 +101,6 @@ class Tracker:
                 i += 1
             self.points = arr
         else:
+            print "Can't detect points for Tracking"
             self.points = None
         return self.points

@@ -27,20 +27,22 @@ class TLD_IVMIT:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if self.init_frames_count == 0:
             start = time()
+            self.tracked_window = self.tracker.track(frame, self.position)
+            self.position.update(frame, *self.tracked_window)
+            print "Tracking:", time()- start
+            start = time()
             self.detector.ensemble_classifier.relearn()
             print "Relearn:", time()- start
             start = time()
             self.detected_windows = self.detector.detect(self.position)
             print "Detection:", time()- start
             start = time()
-            self.tracked_window = self.tracker.track(frame, self.position)
-            print "Tracking:", time()- start
-            start = time()
             single_window = self.integrator.get_single_window(self.detected_windows, self.tracked_window)
             print "Integration:", time()- start
-            print
+            start = time()
             if single_window is not None:
-                self.position.update(frame, *single_window)
+                if single_window != self.tracked_window:
+                    self.position.update(frame, *single_window)
                 self.learning_component.update_positives(self.position.calculate_patch())
                 for window, patch in self.detected_windows:
                     if window != single_window:
@@ -49,7 +51,8 @@ class TLD_IVMIT:
                 self.is_visible = False
             # self.learning_component.n_expert()
             # self.learning_component.p_expert()
-
+            print "Update training set:", time()- start
+            print
         else:
             self.tracked_window = self.tracker.track(frame, self.position)
             if self.tracked_window is not None:
@@ -74,8 +77,8 @@ class TLD_IVMIT:
                 self.position.update(frame, *self.tracked_window)
 
                 self.init_frames_count -= 1
-            # else:
-            #     self.init_frames_count = 0
-            #     self.is_visible = False
+            else:
+                self.init_frames_count = 0
+                self.is_visible = False
 
         return self.position

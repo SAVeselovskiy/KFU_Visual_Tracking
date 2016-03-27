@@ -90,7 +90,7 @@ class Detector:
     def detect(self, position):
         position = copy(position)
         detected_windows = []
-        for current_position in scanning_window(position, scales_step = 1.5, slip_step = 0.3, minimal_bounding_box_size = 50):
+        for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.3, minimal_bounding_box_size = 50):
             patch = current_position.calculate_patch()
             result = self.cascaded_classifier(patch)
             if result == 1:

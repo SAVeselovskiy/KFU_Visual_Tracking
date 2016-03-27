@@ -16,18 +16,19 @@ class LearningComponent:
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
-        winSize = (16,16)
-        blockSize = (4,4)
-        blockStride = (4,4)
-        cellSize = (4,4)
-        nbins = 9
-        derivAperture = 1
-        winSigma = 4.
-        histogramNormType = 0
-        L2HysThreshold = 2.0000000000000001e-01
-        gammaCorrection = 1
-        nlevels = 64
-        self.descriptor = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma, histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
+        # winSize = (16,16)
+        # blockSize = (4,4)
+        # blockStride = (4,4)
+        # cellSize = (4,4)
+        # nbins = 9
+        # derivAperture = 1
+        # winSigma = 4.
+        # histogramNormType = 0
+        # L2HysThreshold = 2.0000000000000001e-01
+        # gammaCorrection = 1
+        # nlevels = 64
+        # self.descriptor = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma, histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
+        self.descriptor = cv2.HOGDescriptor()
         self.update_positives(init_patch)
         self.init_patch = init_patch
 

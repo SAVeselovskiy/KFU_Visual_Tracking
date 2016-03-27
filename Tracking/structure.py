@@ -55,11 +55,11 @@ class Position:
 
 class Patch:
     def __init__(self, bounding_box):
-        self.content = cv2.resize(bounding_box, (8,8))
+        self.content = cv2.resize(bounding_box, (128,128))
         self.feature = None
 
     def calculate_feature(self, descriptor):
-        return self.content.ravel()
-        # if self.feature is None:
-        #     self.feature = descriptor.compute(self.content).ravel()
-        # return self.feature
+        # return self.content.ravel()
+        if self.feature is None:
+            self.feature = descriptor.compute(self.content).ravel()
+        return self.feature
