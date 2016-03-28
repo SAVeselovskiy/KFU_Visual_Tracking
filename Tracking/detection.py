@@ -76,23 +76,31 @@ def scanning_window(position, scales_step = 1.2, slip_step = 0.1, minimal_boundi
     flag_inc = True
     flag_dec = False
     while min(position.width, position.height) >= minimal_bounding_box_size:
-        if position.is_correct():
-            yield position
-        is_end = False
+        position.update(x=0,y=0)
         step_width = int(slip_step * position.width)
         step_height = int(slip_step * position.height)
-        layer = 1
-        xx = position.x
-        yy = position.y
-        while not is_end:
-            is_end = True
-            for start_point, vector in (([-1,-1],[1,0]),([1,-1],[0,1]),([1,1],[-1,0]),([-1,1],[0,-1])):
-                position.update(x=xx + (start_point[0]*layer + vector[0])*step_width, y=yy+(start_point[1]*layer + vector[1])*step_height)
-                while position.is_correct() and xx - layer*step_width <= position.x <= xx + layer*step_width and yy - layer*step_height <= position.y <= yy + layer*step_height:
-                    is_end = False
-                    yield position
-                    position.update(x=position.x+vector[0]*step_width, y=position.y+vector[1]*step_height)
-            layer += 1
+        while position.is_correct():
+            while position.is_correct():
+                yield position
+                position.update(x=position.x+step_width)
+            position.update(x=0, y=position.y+step_height)
+        # if position.is_correct():
+        #     yield position
+        # is_end = False
+        # step_width = int(slip_step * position.width)
+        # step_height = int(slip_step * position.height)
+        # layer = 1
+        # xx = position.x
+        # yy = position.y
+        # while not is_end:
+        #     is_end = True
+        #     for start_point, vector in (([-1,-1],[1,0]),([1,-1],[0,1]),([1,1],[-1,0]),([-1,1],[0,-1])):
+        #         position.update(x=xx + (start_point[0]*layer + vector[0])*step_width, y=yy+(start_point[1]*layer + vector[1])*step_height)
+        #         while position.is_correct() and xx - layer*step_width <= position.x <= xx + layer*step_width and yy - layer*step_height <= position.y <= yy + layer*step_height:
+        #             is_end = False
+        #             yield position
+        #             position.update(x=position.x+vector[0]*step_width, y=position.y+vector[1]*step_height)
+        #     layer += 1
         if flag_inc:
             position.update(height=int(position.height * scales_step), width = int(position.width * scales_step))
         if flag_dec:
