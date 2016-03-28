@@ -30,7 +30,7 @@ class TLD_IVMIT:
             self.tracked_window = self.tracker.track(frame, self.position)
             if self.tracked_window is not None:
                 self.position.update(frame, *self.tracked_window)
-            # print "Tracking:", time()- start
+            print "Tracking:", time()- start
 
             if self.tracked_window is None:
                 pass
@@ -38,18 +38,18 @@ class TLD_IVMIT:
             start = time()
             self.detected_windows = self.detector.detect(self.position, self.tracked_window is not None)
             print "Detected windows count:", len(self.detected_windows)
-            # print "Detection:", time()- start
+            print "Detection:", time()- start
 
             start = time()
             single_window = self.integrator.get_single_window(self.position, self.detected_windows, self.tracked_window)
             self.is_visible = single_window is not None
-            # print "Integration:", time()- start
+            print "Integration:", time()- start
 
             start = time()
             self.learning_component.n_expert()
             self.learning_component.p_expert()
-            # print "Update training set:", time()- start
-            # print
+            print "Update training set:", time()- start
+            print
         else:
             self.tracked_window = self.tracker.track(frame, self.position)
             if self.tracked_window is not None:
@@ -57,18 +57,18 @@ class TLD_IVMIT:
                 self.learning_component.update_positives(self.position.calculate_patch())
                 (x, y, w, h) = self.tracked_window
 
-                self.position.update(x=x+3)
+                self.position.update(x=x+0.1*w)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
-                self.position.update(x=x-3)
+                self.position.update(x=x-0.1*w)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
                 self.position.update(frame, *self.tracked_window)
 
-                self.position.update(y=y+3)
+                self.position.update(y=y+0.1*h)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
-                self.position.update(y=y-3)
+                self.position.update(y=y-0.1*h)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
                 self.position.update(frame, *self.tracked_window)

@@ -55,7 +55,8 @@ class Position:
 
 class Patch:
     def __init__(self, bounding_box):
-        self.content = cv2.resize(bounding_box, (128,128))
+        self.content = cv2.resize(bounding_box, (64,64))
+        self.content = cv2.blur(bounding_box, (4,4))
         self.small_content = cv2.resize(self.content, (16,16))
         self.feature = None
 

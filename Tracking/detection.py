@@ -23,7 +23,7 @@ class PatchVarianceClassifier:
 class EnsembleClassifier:
     def __init__(self, learning_component):
         self.learning_component = learning_component
-        self.classifier = RandomForestClassifier()
+        self.classifier = RandomForestClassifier(max_depth=2)
 
     def classify(self, patch):
         # return 1 if object is positive detected
@@ -129,7 +129,7 @@ class Detector:
         detected_windows = []
         if not position.is_correct():
             position.update(x=0, y=0)
-        for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.05, minimal_bounding_box_size = 50):
+        for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.1, minimal_bounding_box_size = 50):
             patch = current_position.calculate_patch()
             result = self.cascaded_classifier(patch)
             if result == 1:

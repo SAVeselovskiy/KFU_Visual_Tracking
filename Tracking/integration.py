@@ -17,6 +17,7 @@ class Integrator:
 
     def get_single_window(self, position, detected_windows, tracked_window):
         single_window = None
+        is_visible = False
         if len(detected_windows) == 0:
             single_window = tracked_window
         elif tracked_window is not None and self.timer_for_detector > 0:
@@ -32,10 +33,9 @@ class Integrator:
                             max_fscore = fscore
                             single_window = detected_window
                 # print "F-score:", max_fscore
-                if max_fscore < 0.8:
-                    single_window = tracked_window
-            else:
-                single_window = tracked_window
+                if max_fscore > 0.8:
+                    single_window = detected_window
+                    is_visible = True
             self.timer_for_detector -= 1
         else:
             max_similarity = 0
@@ -44,18 +44,8 @@ class Integrator:
                 if similarity > max_similarity:
                     max_similarity = similarity
                     single_window = detected_window
+                    is_visible = True
             self.timer_for_detector = 100
-
-        # if len(detected_windows) == 0:
-        #     single_window = tracked_window
-        # else:
-        #     max_similarity = 0
-        #     for detected_window, patch in detected_windows:
-        #         similarity = self.learning_component.conservative_similarity(patch)
-        #         if similarity > max_similarity:
-        #             max_similarity = similarity
-        #             single_window = detected_window
-        #     pass
 
         if single_window is not None:
             if single_window != tracked_window:
@@ -73,4 +63,4 @@ class Integrator:
         else:
             for window, patch in detected_windows:
                 self.learning_component.add_new_negative(patch)
-        return single_window
+        return single_window, is_visible
