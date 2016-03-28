@@ -5,4 +5,8 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn import svm, datasets
 import numpy as np
 
-print np.random.randint(0,10)
+ima1 = np.zeros((4,4))
+ima2 = np.ones((4,4))
+ima1[1:3,1:3] = np.max(ima1[1:3],ima2[1:3])
+
+print ima

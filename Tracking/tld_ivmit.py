@@ -39,7 +39,8 @@ class TLD_IVMIT:
             print "Detection:", time()- start
 
             start = time()
-            single_window, self.is_visible = self.integrator.get_single_window(self.position, self.detected_windows, self.tracked_window)
+            filtered_detected_windows = [(window, patch, proba) for window, patch, proba in self.detected_windows if proba > 0.5]
+            single_window, self.is_visible = self.integrator.get_single_window(self.position, filtered_detected_windows, self.tracked_window)
             print "Integration:", time()- start
 
             # start = time()

@@ -29,7 +29,7 @@ class EnsembleClassifier:
         # return 1 if object is positive detected
         # return 0 if object is negative detected
         feature = patch.calculate_feature(self.learning_component.descriptor)
-        return self.classifier.predict(feature)
+        return self.classifier.predict_proba(feature)[0][self.positive_class_index]
 
     def relearn(self):
         samples, weights, targets = self.learning_component.get_training_set()
@@ -56,6 +56,12 @@ class EnsembleClassifier:
             print "F-score:", 2 * precision * recall / (precision + recall)
         else:
             print "F-score:", 0
+        self.positive_class_index = 0
+        for elem in self.classifier.classes_:
+            if elem != 1.0:
+                self.positive_class_index += 1
+            else:
+                break
 
 class NearestNeighborClassifier:
 
@@ -137,11 +143,10 @@ class Detector:
         detected_windows = []
         if not position.is_correct():
             position.update(x=0, y=0)
-        for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.1, minimal_bounding_box_size = 50):
-            patch = current_position.calculate_patch()
-            result = self.cascaded_classifier(patch)
-            if result == 1:
-                detected_windows.append((current_position.get_window(), current_position.calculate_patch()))
+        for current_position in scanning_window(position, scales_step = 1000, slip_step = 0.2, minimal_bounding_box_size = 50):
+            proba = self.cascaded_classifier(current_position.calculate_patch())
+            # if proba > 0.5:
+            detected_windows.append((current_position.get_window(), current_position.calculate_patch(), proba))
                 # self.learning_component.add_new_positive(patch)
                 # if is_tracked:
                 #     return detected_windows

@@ -15,28 +15,29 @@ class Integrator:
         self.learning_component = learning_component
         self.tracked_patches = []
 
-    def get_single_window(self, position, detected_windows, tracked_window, correl_track_detect = 0.75, detect_threshold = 0.8):
+    def get_single_window(self, position, detected_windows, tracked_window, correl_track_detect = 0.5, detect_threshold = 0.8):
         single_window = None
         is_visible = False
         if tracked_window is None:
             self.tracked_patches = []
             if len(detected_windows) != 0:
                 # max_similarity = 0
-                # for detected_window, patch in detected_windows:
+                # for detected_window, patch, proba in detected_windows:
                 #     similarity = self.learning_component.conservative_similarity(patch)
                 #     if similarity > max_similarity:
                 #         max_similarity = similarity
                 #         single_window = detected_window
                 #         is_visible = True
                 max_probability = 0
-                for detected_window, patch in detected_windows:
+                for detected_window, patch, proba in detected_windows:
                     probability = (patch)
                     if probability > max_probability:
                         max_probability = probability
+                print "Max probability:", max_probability
                 if max_probability > detect_threshold:
                     single_window = detected_window
                     is_visible = True
-                    for window, patch in detected_windows:
+                    for window, patch, proba in detected_windows:
                         if window != single_window:
                             self.learning_component.update_negatives(patch)
                         else:
@@ -46,7 +47,7 @@ class Integrator:
             self.tracked_patches.append(position.calculate_patch())
         else:
             max_fscore = 0
-            for detected_window, patch in detected_windows:
+            for detected_window, patch, proba in detected_windows:
                 intersection = windows_intersection(detected_window, tracked_window)
                 precision = 1.0*intersection/(detected_window[2]*detected_window[3])
                 recall = 1.0*intersection/(tracked_window[2]*tracked_window[3])
@@ -60,7 +61,7 @@ class Integrator:
                 is_visible = True
                 for patch in self.tracked_patches:
                     self.learning_component.update_positives(patch)
-                for window, patch in detected_windows:
+                for window, patch, proba in detected_windows:
                     if window != single_window:
                         self.learning_component.update_negatives(patch)
                     else:

@@ -2,6 +2,7 @@
 __author__ = 'IVMIT KFU: Gataullin Ravil & Veselovkiy Sergei'
 
 import cv2
+import numpy as np
 from tld_ivmit import TLD_IVMIT
 from time import time
 
@@ -66,8 +67,9 @@ while True:
         fps, clr = get_fps(time1, time2)
 
         if tld.detected_windows is not None:
-            for (x, y, width, height), patch in tld.detected_windows:
-                cv2.rectangle(frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (255, 255, 0))
+            for (x, y, width, height), patch, proba in tld.detected_windows:
+                if proba > 0.5:
+                    cv2.rectangle(frame, pt1 = (x, y), pt2 = (x+width, y+height), color = (255, 255, 0))
 
         if tld.tracked_window is not None:
             x, y, width, height = tld.tracked_window
@@ -83,6 +85,14 @@ while True:
         cv2.putText(frame, str(fps), (10, frame.shape[0]-10), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
     cv2.imshow(window_name, frame)
 
+    # if tld is not None and tld.detected_windows is not None:
+    #     ima = np.zeros((frame.shape[0],frame.shape[1]))
+    #     for (x, y, width, height), patch, proba in tld.detected_windows:
+    #         if proba > 0:
+    #             for i in xrange(x,x+width):
+    #                 for j in xrange(y,y+height):
+    #                     ima[j,i] = max(proba, ima[j,i])
+    #     cv2.imshow('Colormap of detector', ima)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
