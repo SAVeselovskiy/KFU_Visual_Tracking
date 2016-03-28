@@ -16,6 +16,7 @@ class LearningComponent:
         self.negatives = []
         self.new_positives = []
         self.new_negatives = []
+        self.new_samples_count = 0
         # winSize = (16,16)
         # blockSize = (4,4)
         # blockStride = (4,4)
@@ -102,7 +103,7 @@ class LearningComponent:
         # pi, pj - patches
         CV_TM_CCOEFF_NORMED = 5
         try:
-            x = cv2.matchTemplate(pi.content, pj.content, CV_TM_CCOEFF_NORMED)[0][0]
+            x = cv2.matchTemplate(pi.small_content, pj.small_content, CV_TM_CCOEFF_NORMED)[0][0]
         except:
             x = 1
         return x
@@ -150,11 +151,13 @@ class LearningComponent:
         if patch != None:
             patch.calculate_feature(self.descriptor)
             self.positives.append(patch)
+            self.new_samples_count += 1
 
     def update_negatives(self, patch):
         if patch != None:
             patch.calculate_feature(self.descriptor)
             self.negatives.append(patch)
+            self.new_samples_count += 1
 
     def add_new_positive(self, patch):
         if patch != None:
@@ -170,6 +173,7 @@ class LearningComponent:
                 self.update_negatives(patch)
             else:
                 self.update_positives(patch)
+        self.new_positives = []
 
     def p_expert(self, p_threshold = 0.8):
         for patch in self.new_negatives:
@@ -177,3 +181,4 @@ class LearningComponent:
                 self.update_positives(patch)
             else:
                 self.update_negatives(patch)
+        self.new_negatives = []

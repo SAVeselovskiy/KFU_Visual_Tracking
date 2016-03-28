@@ -13,10 +13,13 @@ def windows_intersection(window1, window2):
 class Integrator:
     def __init__(self, learning_component):
         self.learning_component = learning_component
+        self.timer_for_detector = 100
 
-    def get_single_window(self, detected_windows, tracked_window):
+    def get_single_window(self, position, detected_windows, tracked_window):
         single_window = None
-        if tracked_window is not None:
+        if len(detected_windows) == 0:
+            single_window = tracked_window
+        elif tracked_window is not None and self.timer_for_detector > 0:
             if len(detected_windows) > 0:
                 max_fscore = 0
                 for detected_window, patch in detected_windows:
@@ -28,11 +31,12 @@ class Integrator:
                         if fscore > max_fscore:
                             max_fscore = fscore
                             single_window = detected_window
-                print "F-score:", max_fscore
-                if max_fscore < 0.9:
+                # print "F-score:", max_fscore
+                if max_fscore < 0.8:
                     single_window = tracked_window
             else:
                 single_window = tracked_window
+            self.timer_for_detector -= 1
         else:
             max_similarity = 0
             for detected_window, patch in detected_windows:
@@ -40,4 +44,33 @@ class Integrator:
                 if similarity > max_similarity:
                     max_similarity = similarity
                     single_window = detected_window
+            self.timer_for_detector = 100
+
+        # if len(detected_windows) == 0:
+        #     single_window = tracked_window
+        # else:
+        #     max_similarity = 0
+        #     for detected_window, patch in detected_windows:
+        #         similarity = self.learning_component.conservative_similarity(patch)
+        #         if similarity > max_similarity:
+        #             max_similarity = similarity
+        #             single_window = detected_window
+        #     pass
+
+        if single_window is not None:
+            if single_window != tracked_window:
+                position.update(position.frame, *single_window)
+            if tracked_window is not None:
+                self.learning_component.update_positives(position.calculate_patch())
+                for window, patch in detected_windows:
+                    if window != single_window:
+                        self.learning_component.update_negatives(patch)
+            else:
+                self.learning_component.add_new_positive(position.calculate_patch())
+                for window, patch in detected_windows:
+                    if window != single_window:
+                        self.learning_component.add_new_negative(patch)
+        else:
+            for window, patch in detected_windows:
+                self.learning_component.add_new_negative(patch)
         return single_window

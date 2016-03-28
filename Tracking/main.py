@@ -42,13 +42,14 @@ def reset_tracking(event,x,y,flags,param):
 
     if event == cv2.EVENT_LBUTTONUP:
         frame = get_frame(cap)
-        left_x = min(point1[0],point2[0])
-        right_x = max(point1[0],point2[0])
-        up_y = min(point1[1],point2[1])
-        down_y = max(point1[1],point2[1])
-        point1 = None
-        point2 = None
-        tld = TLD_IVMIT(frame, (left_x, up_y, right_x-left_x, down_y-up_y))
+        if point1 is not None and point2 is not None:
+            left_x = min(point1[0],point2[0])
+            right_x = max(point1[0],point2[0])
+            up_y = min(point1[1],point2[1])
+            down_y = max(point1[1],point2[1])
+            point1 = None
+            point2 = None
+            tld = TLD_IVMIT(frame, (left_x, up_y, right_x-left_x, down_y-up_y))
 
 cv2.namedWindow(window_name)
 cv2.setMouseCallback(window_name, reset_tracking)
@@ -76,6 +77,9 @@ while True:
             if tld.init_frames_count == 0:
                 color = clr
             cv2.rectangle(frame, pt1 = current_position.point_left_up(), pt2 = current_position.point_right_down(), color = color)
+
+        if tld.init_frames_count > 0:
+            cv2.putText(frame, str(tld.init_frames_count), (10, 30), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
         cv2.putText(frame, str(fps), (10, frame.shape[0]-10), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
     cv2.imshow(window_name, frame)
 

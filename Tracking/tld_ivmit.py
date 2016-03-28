@@ -30,30 +30,26 @@ class TLD_IVMIT:
             self.tracked_window = self.tracker.track(frame, self.position)
             if self.tracked_window is not None:
                 self.position.update(frame, *self.tracked_window)
-            print "Tracking:", time()- start
-            start = time()
-            self.detector.ensemble_classifier.relearn()
-            print "Relearn:", time()- start
+            # print "Tracking:", time()- start
+
+            if self.tracked_window is None:
+                pass
+
             start = time()
             self.detected_windows = self.detector.detect(self.position, self.tracked_window is not None)
-            print "Detection:", time()- start
+            print "Detected windows count:", len(self.detected_windows)
+            # print "Detection:", time()- start
+
             start = time()
-            single_window = self.integrator.get_single_window(self.detected_windows, self.tracked_window)
-            print "Integration:", time()- start
+            single_window = self.integrator.get_single_window(self.position, self.detected_windows, self.tracked_window)
+            self.is_visible = single_window is not None
+            # print "Integration:", time()- start
+
             start = time()
-            if single_window is not None:
-                if single_window != self.tracked_window:
-                    self.position.update(frame, *single_window)
-                self.learning_component.update_positives(self.position.calculate_patch())
-                for window, patch in self.detected_windows:
-                    if window != single_window:
-                        self.learning_component.update_negatives(patch)
-            else:
-                self.is_visible = False
-            # self.learning_component.n_expert()
-            # self.learning_component.p_expert()
-            print "Update training set:", time()- start
-            print
+            self.learning_component.n_expert()
+            self.learning_component.p_expert()
+            # print "Update training set:", time()- start
+            # print
         else:
             self.tracked_window = self.tracker.track(frame, self.position)
             if self.tracked_window is not None:
@@ -61,18 +57,18 @@ class TLD_IVMIT:
                 self.learning_component.update_positives(self.position.calculate_patch())
                 (x, y, w, h) = self.tracked_window
 
-                self.position.update(x=x+5)
+                self.position.update(x=x+3)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
-                self.position.update(x=x-5)
+                self.position.update(x=x-3)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
                 self.position.update(frame, *self.tracked_window)
 
-                self.position.update(y=y+5)
+                self.position.update(y=y+3)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
-                self.position.update(y=y-5)
+                self.position.update(y=y-3)
                 if self.position.is_correct():
                     self.learning_component.update_negatives(self.position.calculate_patch())
                 self.position.update(frame, *self.tracked_window)

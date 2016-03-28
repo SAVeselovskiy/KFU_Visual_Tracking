@@ -6,7 +6,7 @@ import math
 import numpy as np
 
 def substractPoint(point1, point2):
-        return (point2[0] - point1[0], point2[1] - point1[1])
+    return (point2[0] - point1[0], point2[1] - point1[1])
 
 def median(A):  # A cheat to find the median in our base case
     T = list(A)  # copies list!
@@ -73,8 +73,9 @@ class Tracker:
 
     # возвращает новый boundingBox, новые вычисленные точки, булево значение (True - следит, False - потерял объект)
     def track(self, new_frame, old_position):
-        if self.points is None:
-            self.calculate_points(old_position)
+        self.calculate_points(old_position)
+        # if self.points is None or self.timer_for_calculate_points <= 0:
+        #     self.calculate_points(old_position)
         if self.points is not None:
             new_points, st, err = cv2.calcOpticalFlowPyrLK(old_position.frame, new_frame, self.points, None, **self.lk_params)
             good_new = new_points[st == 1]
@@ -85,22 +86,26 @@ class Tracker:
             newbox = getNewBB(self.points, new_points, self.bounding_box)
             self.points = new_points
             self.bounding_box = newbox
+            self.timer_for_calculate_points -= 1
             return self.bounding_box
         else:
             return None
 
     def calculate_points(self, position):
-        kp, des = self.detector.detectAndCompute(position.get_bounding_box(), None)
-        if len(kp) > 0:
-            p = kp[0].pt
-            arr = np.array([[[p[0] + position.x, p[1] + position.y]]], np.float32)
-            i = 1
-            while i < len(kp):
-                b = np.array([[[kp[i].pt[0] + position.x, kp[i].pt[1] + position.y]]], np.float32)
-                arr = np.append(arr, b, 0)
-                i += 1
-            self.points = arr
-        else:
-            print "Can't detect points for Tracking"
-            self.points = None
+        if position.is_correct():
+            self.timer_for_calculate_points = 100
+            kp, des = self.detector.detectAndCompute(position.get_bounding_box(), None)
+            if len(kp) > 0:
+                p = kp[0].pt
+                arr = np.array([[[p[0] + position.x, p[1] + position.y]]], np.float32)
+                i = 1
+                while i < len(kp):
+                    b = np.array([[[kp[i].pt[0] + position.x, kp[i].pt[1] + position.y]]], np.float32)
+                    arr = np.append(arr, b, 0)
+                    i += 1
+                self.points = arr
+                print "Tracking points count:", len(self.points)
+            else:
+                print "Can't detect points for Tracking"
+                self.points = None
         return self.points
