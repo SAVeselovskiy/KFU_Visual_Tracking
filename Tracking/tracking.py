@@ -85,10 +85,9 @@ class Tracker:
 
     # возвращает новый boundingBox, новые вычисленные точки, булево значение (True - следит, False - потерял объект)
     def track(self, new_frame, old_position):
-        self.bbPoints(self.bounding_box)
-        # if self.points is None or self.timer_for_calculate_points <= 0:
-        #     self.calculate_points(old_position)
+
         if self.points is not None:
+            self.bbPoints(self.bounding_box)
             new_points, self.status, self.err = cv2.calcOpticalFlowPyrLK(old_position.frame, new_frame, self.points,
                                                                          None, **self.lk_params)
             pointsFB, statusFB, self.FB_error = cv2.calcOpticalFlowPyrLK(new_frame, old_position.frame, new_points,
@@ -107,8 +106,10 @@ class Tracker:
 
             # новые бокс и точки
             newbox = getNewBB(self.points, new_points, self.bounding_box)
-            if newbox[0] < 0 or newbox[1] < 0 or newbox[0] + newbox[2] > new_frame.shape[0] or newbox[1] + newbox[
-                3] > new_frame.shape[1]:
+            if newbox[0] < 0 or newbox[1] < 0 or newbox[0] + newbox[2] > new_frame.shape[1] or newbox[1] + newbox[
+                3] > new_frame.shape[0]:
+                self.points = None
+                self.bounding_box = None
                 return None
             self.points = new_points
             self.bounding_box = newbox
