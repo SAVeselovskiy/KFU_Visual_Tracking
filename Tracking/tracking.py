@@ -107,9 +107,9 @@ class Tracker:
 
             # новые бокс и точки
             newbox = getNewBB(self.points, new_points, self.bounding_box)
-            if newbox[0] < 0 or newbox[1] < 0 or newbox[0] + newbox[2] > new_frame.shape[0] or newbox[1] + newbox[
-                3] > new_frame.shape[1]:
-                return None
+            # if newbox[0] < 0 or newbox[1] < 0 or newbox[0] + newbox[2] > new_frame.shape[0] or newbox[1] + newbox[
+            #     3] > new_frame.shape[1]:
+            #     return None
             self.points = new_points
             self.bounding_box = newbox
             self.timer_for_calculate_points -= 1
