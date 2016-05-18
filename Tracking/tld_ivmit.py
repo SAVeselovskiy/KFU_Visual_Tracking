@@ -12,11 +12,11 @@ import numpy as np
 from time import time
 
 class TLD_IVMIT:
-    def __init__(self, frame, window, init_frames_count = 100):
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        self.position = Position(frame, *window)
+    def __init__(self, frame, window, init_frames_count = 20):
+        self.buffer = [cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)]
+        self.position = Position(self.buffer, *window)
         self.learning_component = LearningComponent(self.position.calculate_patch())
-        self.detector = Detector(self.learning_component)
+        self.detector = Detector(self.position, self.learning_component)
         self.tracker = Tracker(self.position)
         self.is_visible = True
         self.integrator = Integrator(self.learning_component)
@@ -29,8 +29,6 @@ class TLD_IVMIT:
         if self.init_frames_count == 0:
             start = time()
             self.tracked_window = self.tracker.track(frame, self.position)
-            if self.tracked_window is not None:
-                self.position.update(frame, *self.tracked_window)
             print "Tracking:", time()- start
 
             start = time()
@@ -39,10 +37,12 @@ class TLD_IVMIT:
             print "Detection:", time()- start
 
             start = time()
-            filtered_detected_windows = [(window, patch, proba) for window, patch, proba in self.detected_windows if proba > 0.5]
+            filtered_detected_windows = [(window, patch, proba) for window, patch, proba in self.detected_windows if proba > 0.7]
             single_window, self.is_visible = self.integrator.get_single_window(self.position, filtered_detected_windows, self.tracked_window)
             print "Integration:", time()- start
 
+            if self.is_visible:
+                self.position.update(frame, *single_window)
             # start = time()
             # self.learning_component.n_expert()
             # self.learning_component.p_expert()

@@ -28,8 +28,8 @@ class LearningComponent:
         L2HysThreshold = 2.0000000000000001e-01
         gammaCorrection = 1
         nlevels = 64
-        self.descriptor = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma, histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
-        # self.descriptor = cv2.HOGDescriptor()
+        # self.descriptor = cv2.HOGDescriptor(winSize,blockSize,blockStride,cellSize,nbins,derivAperture,winSigma, histogramNormType,L2HysThreshold,gammaCorrection,nlevels)
+        self.descriptor = cv2.HOGDescriptor()
         self.update_positives(init_patch)
         self.init_patch = init_patch
 
@@ -84,11 +84,15 @@ class LearningComponent:
     #         generalise = add_gaussian_noise(bounding_box, 0, sigma)
     #         self.update_negatives(generalise)
 
-    def get_training_set(self):
+    def get_training_set(self, const_weight):
         if len(self.negatives) != 0 and len(self.positives) != 0:
             samples = []
-            positive_weight = 1.0*len(self.negatives)/(len(self.negatives)+len(self.positives))
-            negative_weight = 1.0*len(self.positives)/(len(self.negatives)+len(self.positives))
+            if const_weight:
+                positive_weight = 1.0
+                negative_weight = 1.0
+            else:
+                positive_weight = 1.0*len(self.negatives)/(len(self.negatives)+len(self.positives))
+                negative_weight = 1.0*len(self.positives)/(len(self.negatives)+len(self.positives))
             weights = np.append(positive_weight*np.ones(len(self.positives)),negative_weight*np.ones(len(self.negatives)))
             targets = np.append(np.ones(len(self.positives)),np.zeros(len(self.negatives)))
             for positive in self.positives:

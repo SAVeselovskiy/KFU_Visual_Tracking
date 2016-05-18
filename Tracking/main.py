@@ -13,10 +13,16 @@ cap = cv2.VideoCapture(0)
 window_name = 'TLD_IVMIT'
 color = (255, 0, 0)
 
-def get_frame(cap, fx_size = 0.3, fy_size = 0.3):
+def get_frame(cap, area=320*240, dsize = None, fx_size = None, fy_size = None):
     if cap is not None:
         ret, frame = cap.read()
-        frame = cv2.resize(frame, None, fx = fx_size, fy = fy_size)
+        if area is not None and area != 0:
+            f_size = np.sqrt(1.0*area/(frame.shape[0]*frame.shape[1]))
+            frame = cv2.resize(frame, None, fx=f_size, fy=f_size)
+        elif dsize is not None:
+            frame = cv2.resize(frame, dsize)
+        elif fx_size is not None and fy_size is not None:
+            frame = cv2.resize(frame, None, fx=fx_size, fy=fy_size)
         frame = cv2.flip(frame, 1)
         return frame
     else:

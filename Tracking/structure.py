@@ -24,6 +24,10 @@ class Position:
             self.height = height
         self.patch = None
 
+    def clean_frame(self):
+        self.frame = None
+        self.patch = None
+
     def is_correct(self):
         return self.x >= 0 and self.y >= 0 and self.width > 0 and self.height > 0 and self.x + self.width <= self.frame.shape[1] and self.y + self.height <= self.frame.shape[0]
 
@@ -55,7 +59,7 @@ class Position:
 
 class Patch:
     def __init__(self, bounding_box):
-        self.content = cv2.resize(bounding_box, (64,64))
+        self.content = cv2.resize(bounding_box, (64,128))
         self.small_content = cv2.resize(self.content, (16,16))
         self.feature = None
 
