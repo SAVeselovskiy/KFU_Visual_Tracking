@@ -89,9 +89,9 @@ class Tracker:
         # if self.points is None or self.timer_for_calculate_points <= 0:
         #     self.calculate_points(old_position)
         if self.points is not None:
-            new_points, self.status, self.err = cv2.calcOpticalFlowPyrLK(old_position.frame, new_frame, self.points,
+            new_points, self.status, self.err = cv2.calcOpticalFlowPyrLK(old_position.buffer[0], new_frame, self.points,
                                                                          None, **self.lk_params)
-            pointsFB, statusFB, self.FB_error = cv2.calcOpticalFlowPyrLK(new_frame, old_position.frame, new_points,
+            pointsFB, statusFB, self.FB_error = cv2.calcOpticalFlowPyrLK(new_frame, old_position.buffer[0], new_points,
                                                                          None,
                                                                          **self.lk_params)
             i = 0
@@ -99,7 +99,7 @@ class Tracker:
                 self.FB_error[i] = norm(substractPoint(pointsFB[i][0], self.points[i][0]))
                 i += 1
 
-            self.normCrossCorrelation(old_position.frame, new_frame, self.points, new_points)
+            self.normCrossCorrelation(old_position.buffer[0], new_frame, self.points, new_points)
             self.points, new_points, tracked = self.filterPoints(self.points, new_points)
 
             if not tracked:

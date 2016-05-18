@@ -92,6 +92,8 @@ while True:
         if tld.init_frames_count > 0:
             cv2.putText(frame, str(tld.init_frames_count), (10, 30), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
         cv2.putText(frame, str(fps), (10, frame.shape[0]-10), cv2.FONT_ITALIC, 1, color, 2, cv2.LINE_AA)
+        print "FPS:", fps
+        print
     cv2.imshow(window_name, frame)
 
     # if tld is not None and tld.detected_windows is not None:

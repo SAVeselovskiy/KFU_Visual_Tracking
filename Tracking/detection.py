@@ -103,10 +103,10 @@ class NearestNeighborClassifier:
     def predict_position(self, position):
         return self.learning_component.relative_similarity(position.calculate_patch())
 
-def scanning_window(position, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 20, min_step=1, max_step=20):
+def scanning_window(init_position, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 20, min_step=1, max_step=20):
     flag_inc = True
     flag_dec = False
-    init_position = copy(position)
+    position = copy(init_position)
     while min(position.width, position.height) >= minimal_bounding_box_size:
         position.update(x=0,y=0)
         step_width = min(max(min_step,int(slip_step * position.width)),max_step)
@@ -135,14 +135,14 @@ def scanning_window(position, scales_step = 1.2, slip_step = 0.1, minimal_boundi
         #     layer += 1
         if flag_inc:
             position.update(height=int(position.height * scales_step), width = int(position.width * scales_step))
-        if position.height > position.frame.shape[0] or position.width > position.frame.shape[0]:
+        if position.height > position.buffer[0].shape[0] or position.width > position.buffer[0].shape[0]:
             flag_inc = False
             flag_dec = True
-            position = init_position
+            position = copy(init_position)
         if flag_dec:
             position.update(height=int(position.height / scales_step), width = int(position.width / scales_step))
 
-def get_sliding_positions(init_position, buffer_frame=None, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 20, min_step=2, max_step=2):
+def get_sliding_positions(init_position, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 20, min_step=2, max_step=2):
     sliding_positions = []
     flag_inc = True
     flag_dec = False
@@ -153,14 +153,12 @@ def get_sliding_positions(init_position, buffer_frame=None, scales_step = 1.2, s
         step_height = min(max(min_step,int(slip_step * position.height)),max_step)
         while position.is_correct():
             while position.is_correct():
-                insert_position = copy(position)
-                insert_position.clean_frame()
-                sliding_positions.append(insert_position)
+                sliding_positions.append(copy(position))
                 position.update(x=position.x+step_width)
             position.update(x=0, y=position.y+step_height)
         if flag_inc:
             position.update(height=int(position.height * scales_step), width = int(position.width * scales_step))
-        if position.height > position.frame.shape[0] or position.width > position.frame.shape[0]:
+        if position.height > position.buffer[0].shape[0] or position.width > position.buffer[0].shape[0]:
             flag_inc = False
             flag_dec = True
             position = copy(init_position)
@@ -169,7 +167,7 @@ def get_sliding_positions(init_position, buffer_frame=None, scales_step = 1.2, s
     return sliding_positions
 
 class Detector:
-    def __init__(self, init_position, learning_component, threshold_patch_variance=0.5, threshold_ensemble=0.3, threshold_nearest_neighbor=0.6):
+    def __init__(self, init_position, learning_component, threshold_patch_variance=0.5, threshold_ensemble=0.5, threshold_nearest_neighbor=0.6):
         self.learning_component = learning_component
         self.patch_variance_classifier = PatchVarianceClassifier(learning_component.init_patch)
         self.ensemble_classifier = EnsembleClassifier(learning_component)
@@ -177,7 +175,7 @@ class Detector:
         self.threshold_patch_variance = threshold_patch_variance
         self.threshold_ensemble = threshold_ensemble
         self.threshold_nearest_neighbor = threshold_nearest_neighbor
-        self.sliding_positions = get_sliding_positions(init_position, self.buffer_frame, scales_step = 1.2, slip_step = 0.05, minimal_bounding_box_size = 50, min_step=2, max_step=10)
+        self.sliding_positions = get_sliding_positions(init_position, scales_step = 1.2, slip_step = 0.1, minimal_bounding_box_size = 50, min_step=2, max_step=10)
 
     def cascaded_classifier(self, patch):
         # 3 stages of classify
@@ -185,15 +183,13 @@ class Detector:
         # return 0 if object is negative detected
         if self.patch_variance_classifier.predict_patch(patch) < self.threshold_patch_variance:
             return 0
-        elif self.ensemble_classifier.predict_patch(patch) < self.threshold_patch_variance:
+        if self.ensemble_classifier.predict_patch(patch) < self.threshold_patch_variance:
             return 0
-        elif self.nearest_neighbor_classifier.predict_patch(patch) < self.threshold_nearest_neighbor:
-            return 0
-        else:
-            return 1
+        # elif self.nearest_neighbor_classifier.predict_patch(patch) < self.threshold_nearest_neighbor:
+        #     return 0
+        return 1
 
     def detect(self, position, is_tracked):
-        position = copy(position)
         if self.learning_component.new_samples_count > 10:
             start = time()
             self.ensemble_classifier.relearn()
@@ -201,22 +197,20 @@ class Detector:
         detected_windows = []
         predict_times = []
         for current_position in self.sliding_positions:
-            pass
-            current_position.update(frame=position.frame)
-            # start = time()
-            # proba = self.predict_position(current_position)
-            # predict_times.append(time() - start)
-            # if proba > 0.5:
-            #     detected_windows.append((current_position.get_window(), current_position.calculate_patch(), proba))
-            #     self.learning_component.add_new_positive(current_position.calculate_patch())
-            #     if is_tracked:
-            #         return detected_windows
-            # else:
-            #     self.learning_component.add_new_negative(current_position.calculate_patch())
-        # print "Analysed window count:", len(predict_times)
-        # print "Max detection time:", np.max(predict_times)
-        # print "Min detection time:", np.min(predict_times)
-        # print "Mean detection time:", np.mean(predict_times)
+            start = time()
+            proba = self.predict_position(current_position)
+            predict_times.append(time() - start)
+            if proba == 1:
+                detected_windows.append((current_position.get_window(), current_position.calculate_patch(), proba))
+                self.learning_component.add_new_positive(current_position.calculate_patch())
+                if is_tracked:
+                    return detected_windows
+            else:
+                self.learning_component.add_new_negative(current_position.calculate_patch())
+        print "Analysed window count:", len(predict_times)
+        print "Max detection time:", np.max(predict_times)
+        print "Min detection time:", np.min(predict_times)
+        print "Mean detection time:", np.mean(predict_times)
         return detected_windows
 
     def predict_patch(self, patch):

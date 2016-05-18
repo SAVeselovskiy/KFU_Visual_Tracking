@@ -29,6 +29,7 @@ class TLD_IVMIT:
         if self.init_frames_count == 0:
             start = time()
             self.tracked_window = self.tracker.track(frame, self.position)
+            self.buffer[0] = frame
             print "Tracking:", time()- start
 
             start = time()
@@ -37,28 +38,28 @@ class TLD_IVMIT:
             print "Detection:", time()- start
 
             start = time()
-            filtered_detected_windows = [(window, patch, proba) for window, patch, proba in self.detected_windows if proba > 0.7]
-            single_window, self.is_visible = self.integrator.get_single_window(self.position, filtered_detected_windows, self.tracked_window)
+            # filtered_detected_windows = [(window, patch, proba) for window, patch, proba in self.detected_windows if proba > 0.7]
+            single_window, self.is_visible = self.integrator.get_single_window(self.position, self.detected_windows, self.tracked_window)
             print "Integration:", time()- start
 
             if self.is_visible:
-                self.position.update(frame, *single_window)
+                self.position.update(*single_window)
             # start = time()
             # self.learning_component.n_expert()
             # self.learning_component.p_expert()
             # print "Update training set:", time()- start
-            print
         else:
             self.tracked_window = self.tracker.track(frame, self.position)
+            self.buffer[0] = frame
             if self.tracked_window is not None:
                 i = 0
                 while i < 5:
-                    self.position.update(x=np.random.randint(0,frame.shape[1]-self.position.width))
+                    self.position.update(x=np.random.randint(0,self.buffer[0].shape[1]-self.position.width))
                     if self.position.is_correct() and windows_intersection(self.position.get_window(), self.tracked_window) == 0:
                         self.learning_component.update_negatives(self.position.calculate_patch())
                         i += 1
 
-                self.position.update(frame, *self.tracked_window)
+                self.position.update(*self.tracked_window)
                 self.learning_component.update_positives(self.position.calculate_patch())
 
                 self.init_frames_count -= 1
